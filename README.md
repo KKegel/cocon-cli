@@ -1,7 +1,7 @@
 # cocon-cli
 
 *cocon-cli* is a minimalistic command line interface for interacting with the *coconlib* library,
-Please check the (coconlib documentation)[] for more information about the purpose and internals of the library.
+Please check the [coconlib documentation](https://github.com/KKegel/coconlib) for more information about the purpose and internals of the library.
 
 With *cocon-cli* you can:
 - Create a new cocon workspace descriptor
