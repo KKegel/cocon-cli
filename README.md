@@ -57,6 +57,34 @@ cocon <command> [options]
 * It may still be possible to corrupt the workspace descriptor intentionally. *cocon-cli* will not handle these cases.
 * Typical rules for CLI interactions, e.g., quoting, escaping, etc. apply.
 
+#### Command Overview
+```bash
+# basic commands
+cocon init # create a new workspace descriptor
+cocon init-subsys <subsystem-name> # create a new subsystem
+cocon rm-subsys <subsystem-name> # remove a subsystem
+cocon ls-subsys # list all subsystems
+# revisions
+cocon add-rev <subsystem-name> <revision-id> <local-path> -p1 <predecessor-id> -p2 <predecessor-id> # add a revision
+cocon rm-rev <revision-id> # remove a revision
+cocon ls-rev <revision-id> # list a revision
+cocon ls-revs <subsystem-name> # list all revisions in a subsystem
+# successor / unification relations
+cocon ls-rev-rel <revision-id> # list all relations of a revision
+cocon ls-rel <subsystem-name> # list all relations in a subsystem
+# cross-subsystem relations
+cocon add-crel <revision-id> <revision-id> # add a cross-subsystem relation
+cocon rm-crel <revision-id> <revision-id> # remove a cross-subsystem relation
+# projections
+cocon add-proj <projection-name> <revision-id> <revision-id> ... # add a projection
+cocon rm-proj <projection-name> # remove a projection
+# context queries
+cocon query-time <revision-id> <bound> # query the time context
+cocon query-space <revision-id> <bound> # query the space context
+cocon query-rel <revision-id> # query the relational context
+cocon query-proj <revision-id> # query the projectional context
+```
+
 ### Workspace Creation
 Calling
 ```bash
