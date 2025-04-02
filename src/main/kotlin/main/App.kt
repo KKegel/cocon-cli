@@ -16,11 +16,13 @@
 
 package main
 
+import coconlib.context.Context
 import coconlib.core.MultiRevisionSystem
 import coconlib.core.TinkerRevisionGraph
 import coconlib.system.SystemDescription
 import picocli.CommandLine
 import picocli.CommandLine.Parameters
+import java.io.File
 import java.util.concurrent.Callable
 import kotlin.Int
 import kotlin.system.exitProcess
@@ -89,6 +91,11 @@ class Checksum : Callable<Int> {
                 "The path must start in the input directory root. "])
     var exceptionLog: Boolean = false
 
+    @CommandLine.Option(
+        names = ["-d", "--dir"],
+        description = ["Output directory for operations that require it."])
+    var dir: String? = null
+
 
     override fun call(): Int {
         try {
@@ -96,7 +103,7 @@ class Checksum : Callable<Int> {
             assert(command in commands)
             assert(positional.size > 1)
             assert(command == positional.first())
-            exec(command, positional, workspace, predecessor1, predecessor2)
+            exec(command, positional, workspace, predecessor1, predecessor2, dir)
         } catch (a: AssertionError) {
             println("COCON-CLI failed with a missing or invalid argument.")
             if(exceptionLog) {
@@ -123,7 +130,7 @@ fun main(args: Array<String>) {
     exitProcess(CommandLine(Checksum()).execute(*args))
 }
 
-fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2: String?) {
+fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2: String?, dir: String?) {
     val argList = args.toMutableList()
     argList.removeAt(0) // Remove the command from the list
 
@@ -163,13 +170,44 @@ fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2
             Commander.addProj(revisionSystem, argList[0], targets)
         }
         "rm-proj" -> Commander.rmProj(revisionSystem, argList[0])
-        "query-time" -> Commander.queryTime(revisionSystem, argList[0], argList[1].toInt())
-        "query-space" -> Commander.querySpace(revisionSystem, argList[0], argList[1].toInt())
-        "query-rel" -> Commander.queryRel(revisionSystem, argList[0])
-        "query-proj" -> Commander.queryProj(revisionSystem, argList[0])
+        "query-time" -> {
+            val context = Commander.queryTime(revisionSystem, argList[0], argList[1].toInt())
+            checkoutContextDirectory(context, dir)
+        }
+        "query-space" -> {
+            val context = Commander.querySpace(revisionSystem, argList[0], argList[1].toInt())
+            checkoutContextDirectory(context, dir)
+        }
+        "query-rel" -> {
+            val context = Commander.queryRel(revisionSystem, argList[0])
+            checkoutContextDirectory(context, dir)
+        }
+        "query-proj" -> {
+            val context =  Commander.queryProj(revisionSystem, argList[0])
+            checkoutContextDirectory(context, dir)
+        }
     }
     println("<<< EXEC END")
     if( command.startsWith("ls-").not() && command.startsWith("query").not()) {
         ws.write(revisionSystem.serialize())
     }
+}
+
+fun checkoutContextDirectory(context: Context, targetPath: String?) {
+    if (targetPath == null) {
+        println("Use the -d / --dir option to specify a target directory for context checkout.")
+        return
+    }
+    val targetDir = File(targetPath)
+    if (!targetDir.exists()) {
+        targetDir.mkdirs()
+    }
+    context.participants.forEach { revision ->
+        val file = File(revision.location)
+        if (file.exists()) {
+            val targetFile = File(targetDir, revision.revId + "__" + file.name)
+            file.copyTo(targetFile, overwrite = true)
+        }
+    }
+
 }

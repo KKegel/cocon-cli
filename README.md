@@ -243,6 +243,9 @@ Where `bound` is the backlog in revisions.
 For unbounded time context, use `-1` as the bound.
 A bound of `0` will return the revision itself.
 
+Specifying a target directory via the ``-d``/``--dir`` option will copy all revisions in the time context to the target directory as long
+as their path matches a file or directory.
+
 ### Space Context
 The space context is a joint set of revisions that are used to evaluate the quality of a system in terms of space from
 the viewpoint of a specific revision.
@@ -255,6 +258,9 @@ Where `bound` is the backlog in revisions that span the output space.
 For unbounded space context, use `-1` as the bound.
 A bound of `0` will return the revision itself.
 
+Specifying a target directory via the ``-d``/``--dir`` option will copy all revisions in the space context to the target directory as long
+as their path matches a file or directory.
+
 ### Relational Context
 The relational context is the joint set of revisions specified by traversing the cross-subsystem relations one step.
 
@@ -263,6 +269,9 @@ You can query the relational context using the command
 cocon query-rel <revision-id>
 ```
 
+Specifying a target directory via the ``-d``/``--dir`` option will copy all revisions in the relational context to the target directory as long
+as their path matches a file or directory.
+
 ### Projectional Context
 The projectional context contains a projections of a specific revision.
 
@@ -270,3 +279,6 @@ You can query the projectional context using the command
 ```bash
 cocon query-proj <revision-id>
 ```
+
+Specifying a target directory via the ``-d``/``--dir`` option will copy all revisions in the projectional context to the target directory as long
+as their path matches a file or directory.
