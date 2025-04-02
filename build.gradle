@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: '../coconlib/build/libs/coconlib-0.1-alpha.jar', include: ['*.jar'])
+    implementation fileTree(dir: './lib/coconlib-0.1-alpha.jar', include: ['*.jar'])
     implementation 'info.picocli:picocli:4.7.5'
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
