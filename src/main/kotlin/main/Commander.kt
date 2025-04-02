@@ -16,116 +16,179 @@
 
 package main
 
+import coconlib.context.Context
+import coconlib.context.ContextType
 import coconlib.core.MultiRevisionSystem
+import coconlib.graph.EdgeDescription
+import coconlib.graph.EdgeLabel
+import coconlib.graph.RevisionDescription
+import coconlib.system.Projection
+import coconlib.system.Relation
+import kotlin.coroutines.Continuation
 
 object Commander {
 
     fun init() {
-        // Initialize the workspace
+        // Initialize a new empty workspace
         val emptySystem = MultiRevisionSystem(mutableSetOf(), mutableSetOf(), mutableSetOf())
         Workspace.create("./workspace.cocon", emptySystem.serialize())
     }
 
     fun initSubsys(mrs: MultiRevisionSystem, subsystemName: String) {
-        // Initialize the subsystem
-        println("Initializing subsystem...")
-        // Add your initialization logic here
+        // Initialize a new empty subsystem
+        Validation.validateIdentifier(subsystemName)
+        mrs.initNewGraph(subsystemName)
     }
 
     fun removeSubsys(mrs: MultiRevisionSystem, subsystemName: String) {
-        // Remove the subsystem
-        println("Removing subsystem...")
-        // Add your removal logic here
+        // Remove a subsystem
+        mrs.removeGraph(subsystemName)
     }
 
     fun listSubsys(mrs: MultiRevisionSystem) {
-        // List the subsystems
-        println("Listing subsystems...")
-        // Add your listing logic here
+        // List the subsystems with some meta information
+        val subsystems = mrs.getParts().map { Triple(it.graphId, it.getRevisions().size, it.getEdges().size) }
+        subsystems.forEach {
+            println("> ID ${it.first}, \t\t\tRevisions: ${it.second}, \tEdges: ${it.third}")
+        }
     }
 
-    fun addRev(mrs: MultiRevisionSystem, revisionId: String, path: String, predecessor1: String?, predecessor2: String?) {
+    fun addRev(mrs: MultiRevisionSystem, graphId: String, revisionId: String, path: String, predecessor1: String, predecessor2: String?) {
         // Add a revision
-        println("Adding revision...")
-        // Add your addition logic here
+        // The revision may be a unification (merge)
+        Validation.validateIdentifier(revisionId)
+        Validation.validateIdentifier(path)
+
+        val revision = RevisionDescription(graphId, revisionId, revisionId, path)
+        val successorEdge1 = EdgeDescription(predecessor1, revisionId, EdgeLabel.SUCCESSOR)
+
+        if (predecessor2 != null) {
+            val successorEdge2 = EdgeDescription(predecessor2, revisionId, EdgeLabel.SUCCESSOR)
+            mrs.addRevisionWithUnification(graphId, revision, successorEdge1, successorEdge2)
+            //coconlib checks validity in this case
+        }else{
+            mrs.addRevision(graphId, revision, safe = false)
+            mrs.addEdge(graphId, successorEdge1, safe = false)
+            mrs.validate()
+        }
     }
 
     fun removeRev(mrs: MultiRevisionSystem, revisionId: String) {
-        // Remove the revision
-        println("Removing revision...")
-        // Add your removal logic here
+        // Remove a revision
+        // all pointers to the revision are removed automatically
+        mrs.removeRevision(revisionId)
     }
 
     fun listRevs(mrs: MultiRevisionSystem, subsystem: String) {
-        // List the revisions
-        println("Listing revisions...")
-        // Add your listing logic here
+        // List the revisions of a specific subsystem
+        val revisions = mrs.getParts().first { it.graphId == subsystem }.getRevisions()
+        revisions.forEach {
+            println("> ID ${it.revId}, \t\t\tPath: ${it.location}")
+        }
     }
 
     fun listRev(mrs: MultiRevisionSystem, revision: String) {
-        // List the revision
-        println("Listing revision...")
-        // Add your listing logic here
+        // List the specified revision
+        val revisionDescription: RevisionDescription = mrs.findRevision(revision)
+        println(">  ${revisionDescription.revId}, ${revisionDescription.location} \t\t(${revisionDescription.serialize()})")
     }
 
     fun listRevRel(mrs: MultiRevisionSystem, revision: String) {
         // List the revision relationships
-        println("Listing revision relationships...")
-        // Add your listing logic here
+        val edges: List<EdgeDescription> = mrs.findEdges(revision)
+        val projections: List<Projection> = mrs.findProjections(revision)
+        val relations: List<Relation> = mrs.findRelations(revision)
+        println("> Edges: ")
+        edges.forEach {
+            println(">> ${it.sourceShortId} -> ${it.targetShortId} (${it.label})")
+        }
+        println("> Projections: ")
+        projections.forEach {
+            println(">> ${it.projectionId} (${it.sources.joinToString(", ")}) -> ${it.target}")
+        }
+        println("> Relations: ")
+        relations.forEach {
+            println(">> ${it.fromRevision} (${it.fromGraph}) -> ${it.toRevision} (${it.toGraph})")
+        }
     }
 
     fun listRel(mrs: MultiRevisionSystem, subsystem: String) {
-        // List the relationships
-        println("Listing relationships...")
-        // Add your listing logic here
+        // List the relationships outgoing and incoming of a subsystem
+        val relations = mrs.getRelations().filter { it.fromGraph == subsystem || it.toGraph == subsystem }
+        relations.forEach {
+            println("> ${it.fromGraph} (${it.fromRevision}) -> ${it.toGraph} (${it.toRevision})")
+        }
     }
 
     fun addCrel(mrs: MultiRevisionSystem, rev1: String, rev2: String) {
         // Add a relationship
-        println("Adding relationship...")
-        // Add your addition logic here
+        val revision1: RevisionDescription = mrs.findRevision(rev1)
+        val revision2: RevisionDescription = mrs.findRevision(rev2)
+        val relation = Relation(revision1.graph, revision2.graph, revision1.revId, revision2.revId)
+        mrs.addRelation(relation)
     }
 
     fun rmCrel(mrs: MultiRevisionSystem, rev1: String, rev2: String) {
         // Remove a relationship
-        println("Removing relationship...")
-        // Add your removal logic here
+        val revision1: RevisionDescription = mrs.findRevision(rev1)
+        val revision2: RevisionDescription = mrs.findRevision(rev2)
+        val relation = Relation(revision1.graph, revision2.graph, revision1.revId, revision2.revId)
+        mrs.removeRelation(relation)
     }
 
     fun addProj(mrs: MultiRevisionSystem, name: String, revisions: List<String>) {
-        // Add a project
-        println("Adding project...")
-        // Add your addition logic here
+        // Add a projection
+        Validation.validateIdentifier(name)
+        val revisionDescriptions = revisions.map { mrs.findRevision(it) }
+        val projection = Projection(name, revisionDescriptions.map { it.revId }, name)
+        mrs.addProjection(projection)
     }
 
     fun rmProj(mrs: MultiRevisionSystem, name: String) {
-        // Remove a project
-        println("Removing project...")
-        // Add your removal logic here
+        // Remove a projection
+        mrs.removeProjection(mrs.getProjections().first { it.projectionId == name })
     }
 
-    fun queryTime(mrs: MultiRevisionSystem, revision: String, bound: Int) {
-        // Query the time of a revision
-        println("Querying time...")
-        // Add your querying logic here
+    fun queryTime(mrs: MultiRevisionSystem, revision: String, bound: Int): Context {
+        // Query the time context of a revision
+        val revision = mrs.findRevision(revision)
+        val context = mrs.findLocalContext(revision.graph, revision.revId, ContextType.TIME, bound)
+        println("> Time context of revision $revision bound by $bound:")
+        context.participants.forEach {
+            println(">> ${it.revId} (${it.graph})")
+        }
+        return context
     }
 
-    fun querySpace(mrs: MultiRevisionSystem, revision: String, bound: Int) {
-        // Query the space of a revision
-        println("Querying space...")
-        // Add your querying logic here
+    fun querySpace(mrs: MultiRevisionSystem, revision: String, bound: Int): Context {
+        // Query the space context of a revision
+        val revision = mrs.findRevision(revision)
+        val context = mrs.findLocalContext(revision.graph, revision.revId, ContextType.SPACE, bound)
+        println("> Space context of revision $revision bound by $bound:")
+        context.participants.forEach {
+            println(">> ${it.revId} (${it.graph})")
+        }
+        return context
     }
 
-    fun queryRel(mrs: MultiRevisionSystem, revision: String) {
-        // Query the relationships of a revision
-        println("Querying relationships...")
-        // Add your querying logic here
+    fun queryRel(mrs: MultiRevisionSystem, revision: String): Context {
+        // Query the relational context of a revision
+        val context = mrs.findGlobalContext(revision, ContextType.RELATIONAL)
+        println("> Relational context of revision $revision:")
+        context.participants.forEach {
+            println(">> ${it.revId} (${it.graph})")
+        }
+        return context
     }
 
-    fun queryProj(mrs: MultiRevisionSystem, project: String) {
-        // Query the project
-        println("Querying project...")
-        // Add your querying logic here
+    fun queryProj(mrs: MultiRevisionSystem, project: String): Context {
+        // Query the projectional context of a revision
+        val context = mrs.findGlobalContext(project, ContextType.PROJECTIVE)
+        println("> Projective context of projection $project:")
+        context.participants.forEach {
+            println(">> ${it.revId} (${it.graph})")
+        }
+        return context
     }
 
 }

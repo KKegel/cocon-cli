@@ -99,7 +99,7 @@ cocon query-proj <revision-id> # query the projectional context
 ### Workspace Creation
 Calling
 ```bash
-cocon init (X)
+cocon init
 ``` 
 will create a new workspace descriptor in the current directory called ``workspace.cocon``.
 The workspace can be destroyed by just deleting the file.
@@ -114,7 +114,7 @@ A workspace can contain multiple subsystems, each with its own revisions and rel
 A subsystem is identified by a unique name and can be created using the command
 
 ```bash
-cocon init-subsys <subsystem-name> (X)
+cocon init-subsys <subsystem-name>
 ```
 Example:
 ```bash
@@ -125,12 +125,11 @@ The subsystem will be empty and can be populated with revisions and relations.
 
 The subsystem can be removed using the command
 ```bash
-cocon rm-subsys <subsystem-name> (X)
+cocon rm-subsys <subsystem-name>
 ```
-
 You can view the registered subsystems using the command
 ```bash
-cocon ls-subsys (X)
+cocon ls-subsys
 ```
 
 ### Registering Revisions
@@ -139,7 +138,7 @@ A revision is identified by a unique identifier and a local file path.
 **The revision id must be unique all subsystems in the workspace descriptor.**
 A revision can be registered using the command
 ```bash
-cocon add-rev <subsystem-name> <revision-id> <local-path> -p1 <predecessor-id> -p2 <predecessor-id> (X)
+cocon add-rev <subsystem-name> <revision-id> <local-path> -p1 <predecessor-id> -p2 <predecessor-id>
 ```
 Example:
 ```bash
@@ -160,17 +159,17 @@ This will not delete the local path, only the reference in the workspace descrip
 Deleting revisions might corrupt the workspace descriptor. 
 *cocon-cli* will abort the operation if it detects a potential corruption.
 ```bash
-cocon rm-rev <revision-id> (X)
+cocon rm-rev <revision-id>
 ```
 
 You can view the registered revisions using the command
 ```bash
-cocon ls-revs <subsystem-name> (X)
+cocon ls-revs <subsystem-name>
 ```
 
 You can view a single revision using the command
 ```bash
-cocon ls-rev <revision-id> (X)
+cocon ls-rev <revision-id>
 ```
 
 
@@ -180,11 +179,11 @@ In the current version, only successor and unification relations are supported.
 These relations are automatically created when registering revisions with the `-p1` and `-p2` options.
 You can view the relations of a revision using the command
 ```bash
-cocon ls-rev-rel <revision-id> (X)
+cocon ls-rev-rel <revision-id>
 ```
 You can view all relations in the subsystem using the command
 ```bash
-cocon ls-rel <subsystem-name> (X)
+cocon ls-rel <subsystem-name>
 ```
 
 ### Cross-Subsystem Relations
@@ -194,11 +193,11 @@ Cross-subsystem relations are directed.
 These relations can be managed freely.
 You can create a cross-subsystem relation using the command
 ```bash
-cocon add-crel <revision-id> <revision-id> (X)
+cocon add-crel <revision-id> <revision-id>
 ```
 You can remove a cross-subsystem relation using the command
 ```bash
-cocon rm-crel <revision-id> <revision-id> (X)
+cocon rm-crel <revision-id> <revision-id>
 ```
 
 ### Projections
@@ -207,7 +206,7 @@ In model-driven engineering, projections are called views.
 A projection is specified by a name and a list of revisions which it is composed of.
 A projection can be created using the command
 ```bash
-cocon add-proj <projection-name> <revision-id> <revision-id> ... (X)
+cocon add-proj <projection-name> <revision-id> <revision-id> ...
 ```
 Example:
 ```bash
@@ -215,7 +214,7 @@ cocon add-proj assembly robot1.v1 gripper.v3 platform.v3
 ```
 You can remove a projection using the command
 ```bash
-cocon rm-proj <projection-name> (X)
+cocon rm-proj <projection-name>
 ```
 
 
@@ -238,7 +237,7 @@ the viewpoint of a specific revision.
 
 You can query the time context using the command
 ```bash
-cocon query-time <revision-id> <bound> (X)
+cocon query-time <revision-id> <bound>
 ```
 Where `bound` is the backlog in revisions. 
 For unbounded time context, use `-1` as the bound.
@@ -250,7 +249,7 @@ the viewpoint of a specific revision.
 
 You can query the space context using the command
 ```bash
-cocon query-space <revision-id> <bound> (X)
+cocon query-space <revision-id> <bound>
 ```
 Where `bound` is the backlog in revisions that span the output space. 
 For unbounded space context, use `-1` as the bound.
@@ -261,7 +260,7 @@ The relational context is the joint set of revisions specified by traversing the
 
 You can query the relational context using the command
 ```bash
-cocon query-rel <revision-id> (X)
+cocon query-rel <revision-id>
 ```
 
 ### Projectional Context
@@ -269,5 +268,5 @@ The projectional context contains a projections of a specific revision.
 
 You can query the projectional context using the command
 ```bash
-cocon query-proj <revision-id> (X)
+cocon query-proj <revision-id>
 ```

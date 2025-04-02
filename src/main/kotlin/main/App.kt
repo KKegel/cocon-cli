@@ -93,7 +93,7 @@ class Checksum : Callable<Int> {
     override fun call(): Int {
         try {
             assert(command.isNotEmpty())
-            assert(command in commandList)
+            assert(command in commands)
             assert(positional.size > 1)
             assert(command == positional.first())
             exec(command, positional, workspace, predecessor1, predecessor2)
@@ -149,8 +149,7 @@ fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2
         "ls-subsys" -> Commander.listSubsys(revisionSystem)
         "add-rev" -> {
             assert(p1 != null && p1.isNotEmpty())
-            assert(p2 != null && p2.isNotEmpty())
-            Commander.addRev(revisionSystem, argList[0], argList[1], p1, p2)
+            Commander.addRev(revisionSystem, argList[0], argList[1], argList[2], p1!!, p2)
         }
         "rm-rev" -> Commander.removeRev(revisionSystem, argList[0])
         "ls-rev" -> Commander.listRev(revisionSystem, argList[0])
