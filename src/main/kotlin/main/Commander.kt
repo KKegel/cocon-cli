@@ -16,111 +16,113 @@
 
 package main
 
+import coconlib.core.MultiRevisionSystem
+
 object Commander {
 
     fun init() {
         // Initialize the workspace
-        println("Initializing workspace...")
-        // Add your initialization logic here
+        val emptySystem = MultiRevisionSystem(mutableSetOf(), mutableSetOf(), mutableSetOf())
+        Workspace.create("./workspace.cocon", emptySystem.serialize())
     }
 
-    fun initSubsys(workspace: Workspace, name: String) {
+    fun initSubsys(mrs: MultiRevisionSystem, subsystemName: String) {
         // Initialize the subsystem
         println("Initializing subsystem...")
         // Add your initialization logic here
     }
 
-    fun removeSubsys(workspace: Workspace, name: String) {
+    fun removeSubsys(mrs: MultiRevisionSystem, subsystemName: String) {
         // Remove the subsystem
         println("Removing subsystem...")
         // Add your removal logic here
     }
 
-    fun listSubsys(workspace: Workspace) {
+    fun listSubsys(mrs: MultiRevisionSystem) {
         // List the subsystems
         println("Listing subsystems...")
         // Add your listing logic here
     }
 
-    fun addRev(workspace: Workspace, name: String, path: String, predecessor1: String?, predecessor2: String?) {
+    fun addRev(mrs: MultiRevisionSystem, revisionId: String, path: String, predecessor1: String?, predecessor2: String?) {
         // Add a revision
         println("Adding revision...")
         // Add your addition logic here
     }
 
-    fun removeRev(workspace: Workspace, name: String) {
+    fun removeRev(mrs: MultiRevisionSystem, revisionId: String) {
         // Remove the revision
         println("Removing revision...")
         // Add your removal logic here
     }
 
-    fun listRevs(workspace: Workspace, subsystem: String) {
+    fun listRevs(mrs: MultiRevisionSystem, subsystem: String) {
         // List the revisions
         println("Listing revisions...")
         // Add your listing logic here
     }
 
-    fun listRev(workspace: Workspace, revision: String) {
+    fun listRev(mrs: MultiRevisionSystem, revision: String) {
         // List the revision
         println("Listing revision...")
         // Add your listing logic here
     }
 
-    fun listRevRel(workspace: Workspace, revision: String) {
+    fun listRevRel(mrs: MultiRevisionSystem, revision: String) {
         // List the revision relationships
         println("Listing revision relationships...")
         // Add your listing logic here
     }
 
-    fun listRel(workspace: Workspace, subsystem: String) {
+    fun listRel(mrs: MultiRevisionSystem, subsystem: String) {
         // List the relationships
         println("Listing relationships...")
         // Add your listing logic here
     }
 
-    fun addCrel(workspace: Workspace, rev1: String, rev2: String) {
+    fun addCrel(mrs: MultiRevisionSystem, rev1: String, rev2: String) {
         // Add a relationship
         println("Adding relationship...")
         // Add your addition logic here
     }
 
-    fun rmCrel(workspace: Workspace, rev1: String, rev2: String) {
+    fun rmCrel(mrs: MultiRevisionSystem, rev1: String, rev2: String) {
         // Remove a relationship
         println("Removing relationship...")
         // Add your removal logic here
     }
 
-    fun addProj(workspace: Workspace, name: String, revisions: List<String>) {
+    fun addProj(mrs: MultiRevisionSystem, name: String, revisions: List<String>) {
         // Add a project
         println("Adding project...")
         // Add your addition logic here
     }
 
-    fun rmProj(workspace: Workspace, name: String) {
+    fun rmProj(mrs: MultiRevisionSystem, name: String) {
         // Remove a project
         println("Removing project...")
         // Add your removal logic here
     }
 
-    fun queryTime(workspace: Workspace, revision: String, bound: Int) {
+    fun queryTime(mrs: MultiRevisionSystem, revision: String, bound: Int) {
         // Query the time of a revision
         println("Querying time...")
         // Add your querying logic here
     }
 
-    fun querySpace(workspace: Workspace, revision: String, bound: Int) {
+    fun querySpace(mrs: MultiRevisionSystem, revision: String, bound: Int) {
         // Query the space of a revision
         println("Querying space...")
         // Add your querying logic here
     }
 
-    fun queryRel(workspace: Workspace, revision: String) {
+    fun queryRel(mrs: MultiRevisionSystem, revision: String) {
         // Query the relationships of a revision
         println("Querying relationships...")
         // Add your querying logic here
     }
 
-    fun queryProj(workspace: Workspace, project: String) {
+    fun queryProj(mrs: MultiRevisionSystem, project: String) {
         // Query the project
         println("Querying project...")
         // Add your querying logic here

@@ -34,20 +34,26 @@ The workspace descriptor is stored as a ``.cocon`` file.
 
 ### Installation
 
-The *cocon-cli* is a Kotlin JVM application vuilt for Java 21 and can be run on any system with a Java Runtime Environment (JRE) installed.
+The *cocon-cli* is a Kotlin JVM application built for Java 21 and can be run on any system with a Java Runtime Environment (JRE) installed.
 The application can be:
-- built from source using the provided Gradle build script
+- custom-built from source using the provided Gradle build script
 - downloaded as prebuilt package from our CI pipeline
+- used via the provided shell script
 
-Each library command can either be executed via a full java call
-```bash
-java -jar cocon-cli.jar <command> [options]
-```
-or via the provided shell script (which calls java in the background). For convenience, you should add the shell script to your PATH or 
-create a shell alias in your shell configuration file (e.g. `.bashrc`, `.zshrc`, etc.):
+#### Download Prebuilt Package
+You can download the prebuilt package from our CI pipeline. The package is a zip file containing the application and all its dependencies.
+Within the zip file, you will find executables inside the `bin` directory. We recommend creating 
+a `cocon` alias in your shell configuration file (e.g. `.bashrc`, `.zshrc`, etc.) to make it easier to run the application:
 ```bash
 cocon <command> [options]
 ```
+
+#### Shell Script
+This directory contains a shell script that can be used to run all commands.
+The shell script must be executed from within this directory and is meant for testing and development purposes only.
+The script checks if a successful build of the application exists in the `build/` directory and runs the application with the provided arguments.
+Otherwise, the script automatically builds the application and runs it.
+
 
 #### General Remarks
 * When specifying ids or paths, refrain from using trailing or leading spaces.
@@ -64,20 +70,25 @@ cocon init # create a new workspace descriptor
 cocon init-subsys <subsystem-name> # create a new subsystem
 cocon rm-subsys <subsystem-name> # remove a subsystem
 cocon ls-subsys # list all subsystems
+
 # revisions
 cocon add-rev <subsystem-name> <revision-id> <local-path> -p1 <predecessor-id> -p2 <predecessor-id> # add a revision
 cocon rm-rev <revision-id> # remove a revision
 cocon ls-rev <revision-id> # list a revision
 cocon ls-revs <subsystem-name> # list all revisions in a subsystem
+
 # successor / unification relations
 cocon ls-rev-rel <revision-id> # list all relations of a revision
 cocon ls-rel <subsystem-name> # list all relations in a subsystem
+
 # cross-subsystem relations
 cocon add-crel <revision-id> <revision-id> # add a cross-subsystem relation
 cocon rm-crel <revision-id> <revision-id> # remove a cross-subsystem relation
+
 # projections
 cocon add-proj <projection-name> <revision-id> <revision-id> ... # add a projection
 cocon rm-proj <projection-name> # remove a projection
+
 # context queries
 cocon query-time <revision-id> <bound> # query the time context
 cocon query-space <revision-id> <bound> # query the space context

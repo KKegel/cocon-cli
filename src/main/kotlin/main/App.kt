@@ -16,9 +16,13 @@
 
 package main
 
+import coconlib.core.MultiRevisionSystem
+import coconlib.core.TinkerRevisionGraph
+import coconlib.system.SystemDescription
 import picocli.CommandLine
 import picocli.CommandLine.Parameters
 import java.util.concurrent.Callable
+import kotlin.Int
 import kotlin.system.exitProcess
 
 val commands = listOf<String>(
@@ -79,13 +83,38 @@ class Checksum : Callable<Int> {
                 "Use this option only in combination with the add-rev command."])
     var predecessor2: String? = null
 
+    @CommandLine.Option(
+        names = ["-l", "--log"],
+        description = ["Path to the input repository. " +
+                "The path must start in the input directory root. "])
+    var exceptionLog: Boolean = false
+
 
     override fun call(): Int {
-        assert(command.isNotEmpty())
-        assert(command in commandList)
-        assert(positional.size > 1)
-        assert(command == positional.first())
-        exec(command, positional, workspace, predecessor1, predecessor2)
+        try {
+            assert(command.isNotEmpty())
+            assert(command in commandList)
+            assert(positional.size > 1)
+            assert(command == positional.first())
+            exec(command, positional, workspace, predecessor1, predecessor2)
+        } catch (a: AssertionError) {
+            println("COCON-CLI failed with a missing or invalid argument.")
+            if(exceptionLog) {
+                println("ERROR: ${a.message}")
+                println("ERROR: ${a.stackTraceToString()}")
+            } else {
+                println("Run COCON-CLI with the --log option to get the full error log.")
+            }
+        } catch (e: Exception) {
+            println("COCON-CLI terminated unsuccessfully (e.g. potential invalidation)")
+            if(exceptionLog) {
+                println("ERROR: ${e.message}")
+                println("ERROR: ${e.stackTraceToString()}")
+            } else {
+                println("Run COCON-CLI with the --log option to get the full error log.")
+            }
+        }
+        println("Done.")
         return 0
     }
 }
@@ -95,5 +124,53 @@ fun main(args: Array<String>) {
 }
 
 fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2: String?) {
+    val argList = args.toMutableList()
+    argList.removeAt(0) // Remove the command from the list
 
+    if (command == "init") {
+        Commander.init()
+        return
+    }
+    val ws = Workspace(workspace)
+    val serializedSystem: String = ws.open()
+    val rsd: SystemDescription = SystemDescription.parse(
+        serializedSystem,
+        TinkerRevisionGraph::build
+    )
+    val revisionSystem: MultiRevisionSystem = MultiRevisionSystem.create(
+        rsd.parts,
+        rsd.relations,
+        rsd.projections
+    )
+    println(">>> EXEC BEGIN")
+    when (command) {
+        "init-subsys" -> Commander.initSubsys(revisionSystem, argList[0])
+        "rm-subsys" -> Commander.removeSubsys(revisionSystem, argList[0])
+        "ls-subsys" -> Commander.listSubsys(revisionSystem)
+        "add-rev" -> {
+            assert(p1 != null && p1.isNotEmpty())
+            assert(p2 != null && p2.isNotEmpty())
+            Commander.addRev(revisionSystem, argList[0], argList[1], p1, p2)
+        }
+        "rm-rev" -> Commander.removeRev(revisionSystem, argList[0])
+        "ls-rev" -> Commander.listRev(revisionSystem, argList[0])
+        "ls-revs" -> Commander.listRevs(revisionSystem, argList[0])
+        "ls-rev-rel" -> Commander.listRevRel(revisionSystem, argList[0])
+        "ls-rel" -> Commander.listRel(revisionSystem, argList[0])
+        "add-crel" -> Commander.addCrel(revisionSystem, argList[0], argList[1])
+        "rm-crel" -> Commander.rmCrel(revisionSystem, argList[0], argList[1])
+        "add-proj" -> {
+            val targets = argList.subList(1, argList.size)
+            Commander.addProj(revisionSystem, argList[0], targets)
+        }
+        "rm-proj" -> Commander.rmProj(revisionSystem, argList[0])
+        "query-time" -> Commander.queryTime(revisionSystem, argList[0], argList[1].toInt())
+        "query-space" -> Commander.querySpace(revisionSystem, argList[0], argList[1].toInt())
+        "query-rel" -> Commander.queryRel(revisionSystem, argList[0])
+        "query-proj" -> Commander.queryProj(revisionSystem, argList[0])
+    }
+    println("<<< EXEC END")
+    if( command.startsWith("ls-").not() && command.startsWith("query").not()) {
+        ws.write(revisionSystem.serialize())
+    }
 }
