@@ -11,10 +11,12 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: './lib/coconlib-0.1-alpha.jar', include: ['*.jar'])
+    implementation fileTree(dir: './lib/coconlib-0.1-alpha', include: ['*.jar'])
+    implementation fileTree(dir: './lib/coconlib-0.1-alpha/lib', include: ['*.jar'])
     implementation 'info.picocli:picocli:4.7.5'
-
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-nop:2.0.17'
 }
 
 test {
@@ -46,4 +48,12 @@ tasks.register('fatJar', Jar) {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
     with jar
+}
+
+tasks.withType(Tar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType(Zip).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

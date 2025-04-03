@@ -149,14 +149,13 @@ fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2
         rsd.relations,
         rsd.projections
     )
-    println(">>> EXEC BEGIN")
+    //println(">>> EXEC BEGIN")
     when (command) {
         "init-subsys" -> Commander.initSubsys(revisionSystem, argList[0])
         "rm-subsys" -> Commander.removeSubsys(revisionSystem, argList[0])
         "ls-subsys" -> Commander.listSubsys(revisionSystem)
         "add-rev" -> {
-            assert(p1 != null && p1.isNotEmpty())
-            Commander.addRev(revisionSystem, argList[0], argList[1], argList[2], p1!!, p2)
+            Commander.addRev(revisionSystem, argList[0], argList[1], argList[2], p1, p2)
         }
         "rm-rev" -> Commander.removeRev(revisionSystem, argList[0])
         "ls-rev" -> Commander.listRev(revisionSystem, argList[0])
@@ -187,7 +186,7 @@ fun exec(command: String, args: List<String>, workspace: String, p1: String?, p2
             checkoutContextDirectory(context, dir)
         }
     }
-    println("<<< EXEC END")
+    //println("<<< EXEC END")
     if( command.startsWith("ls-").not() && command.startsWith("query").not()) {
         ws.write(revisionSystem.serialize())
     }
@@ -198,15 +197,18 @@ fun checkoutContextDirectory(context: Context, targetPath: String?) {
         println("Use the -d / --dir option to specify a target directory for context checkout.")
         return
     }
+    println(">> Context checkout to $targetPath")
     val targetDir = File(targetPath)
     if (!targetDir.exists()) {
         targetDir.mkdirs()
     }
     context.participants.forEach { revision ->
         val file = File(revision.location)
-        if (file.exists()) {
-            val targetFile = File(targetDir, revision.revId + "__" + file.name)
-            file.copyTo(targetFile, overwrite = true)
+        println("Copying ${file.path} to $targetPath")
+        if (file.exists()){
+            file.copyTo(File(targetDir, "${file.name}"), overwrite = true)
+        }else{
+            println("File ${file.path} does not exist.")
         }
     }
 

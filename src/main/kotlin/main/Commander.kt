@@ -49,27 +49,34 @@ object Commander {
         // List the subsystems with some meta information
         val subsystems = mrs.getParts().map { Triple(it.graphId, it.getRevisions().size, it.getEdges().size) }
         subsystems.forEach {
-            println("> ID ${it.first}, \t\t\tRevisions: ${it.second}, \tEdges: ${it.third}")
+            println("> ID ${it.first}, Revisions: ${it.second}, Edges: ${it.third}")
         }
     }
 
-    fun addRev(mrs: MultiRevisionSystem, graphId: String, revisionId: String, path: String, predecessor1: String, predecessor2: String?) {
+    fun addRev(mrs: MultiRevisionSystem, graphId: String, revisionId: String,
+               path: String, predecessor1: String?, predecessor2: String?) {
         // Add a revision
         // The revision may be a unification (merge)
         Validation.validateIdentifier(revisionId)
         Validation.validateIdentifier(path)
 
         val revision = RevisionDescription(graphId, revisionId, revisionId, path)
-        val successorEdge1 = EdgeDescription(predecessor1, revisionId, EdgeLabel.SUCCESSOR)
 
-        if (predecessor2 != null) {
-            val successorEdge2 = EdgeDescription(predecessor2, revisionId, EdgeLabel.SUCCESSOR)
-            mrs.addRevisionWithUnification(graphId, revision, successorEdge1, successorEdge2)
-            //coconlib checks validity in this case
+        if(predecessor1 != null){
+            val successorEdge1 = EdgeDescription(predecessor1, revisionId, EdgeLabel.SUCCESSOR)
+
+            if (predecessor2 != null) {
+                val successorEdge2 = EdgeDescription(predecessor2, revisionId, EdgeLabel.SUCCESSOR)
+                mrs.addRevisionWithUnification(graphId, revision, successorEdge1, successorEdge2)
+                //coconlib checks validity in this case
+            }else{
+                mrs.addRevision(graphId, revision, safe = false)
+                mrs.addEdge(graphId, successorEdge1, safe = false)
+                mrs.validate()
+            }
         }else{
-            mrs.addRevision(graphId, revision, safe = false)
-            mrs.addEdge(graphId, successorEdge1, safe = false)
-            mrs.validate()
+            //That's a root revision
+            mrs.addRevision(graphId, revision, safe = true)
         }
     }
 
@@ -83,14 +90,14 @@ object Commander {
         // List the revisions of a specific subsystem
         val revisions = mrs.getParts().first { it.graphId == subsystem }.getRevisions()
         revisions.forEach {
-            println("> ID ${it.revId}, \t\t\tPath: ${it.location}")
+            println("> ID ${it.revId}, Path: ${it.location}")
         }
     }
 
     fun listRev(mrs: MultiRevisionSystem, revision: String) {
         // List the specified revision
         val revisionDescription: RevisionDescription = mrs.findRevision(revision)
-        println(">  ${revisionDescription.revId}, ${revisionDescription.location} \t\t(${revisionDescription.serialize()})")
+        println(">  ${revisionDescription.revId}, ${revisionDescription.location} (${revisionDescription.serialize()})")
     }
 
     fun listRevRel(mrs: MultiRevisionSystem, revision: String) {
